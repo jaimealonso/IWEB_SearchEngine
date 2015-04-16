@@ -24,4 +24,5 @@ def preprocess(document):
 
 sentence = "Hey y'all, this is a sample sentence that I want to tokenize; sorry, I am going to use a lot of punctuation " \
            "marks."
-print preprocess(sentence)
+x = preprocess(sentence)
+

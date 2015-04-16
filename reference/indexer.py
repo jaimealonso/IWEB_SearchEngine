@@ -1,12 +1,17 @@
 import os, codecs
+
+
+
 from preprocessor import preprocess
+from math import log10
 
 
 def indexer(corpus_dir):
     index = {}
-
+    doclist = os.listdir(corpus_dir)
+    M = len(doclist)
     # extract tokens from files
-    for filename in os.listdir(corpus_dir):
+    for filename in doclist:
 
         with codecs.open(corpus_dir+filename, encoding='utf-8') as myfile:
             document = myfile.read().replace('\n', '')
@@ -22,11 +27,20 @@ def indexer(corpus_dir):
             else:
                 index[token] = {filename: 1}
 
-    return index
+    enhanced_index = {}
+    for word in index:
+        enhanced_index[word]={} #inner dict
+        idf = log10((M+1) / len(index[word])) 
+        for document in index[word]:
+            enhanced_index[word][document] = index[word][document]*idf
+
+    return enhanced_index
 
 
-corpus_dir = '/Users/jaime/PycharmProjects/IWEB_SearchEngine/corpus/'
+corpus_dir = 'C:\\Users\\Santi\\git\\IWEB_SearchEngine\\corpus\\'
 index = indexer(corpus_dir)
-for key in index:
-    print key
+
+
+
+print index
 
