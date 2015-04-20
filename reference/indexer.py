@@ -1,6 +1,5 @@
-import os, codecs
-
-
+import os
+import codecs
 
 from preprocessor import preprocess
 from math import log10
@@ -37,10 +36,10 @@ def indexer(corpus_dir):
     return enhanced_index
 
 
-corpus_dir = 'C:\\Users\\Santi\\git\\IWEB_SearchEngine\\corpus\\'
-index = indexer(corpus_dir)
-
-
-
-print index
+# corpus_dir = 'C:\\Users\\Santi\\git\\IWEB_SearchEngine\\corpus\\'
+# index = indexer(corpus_dir)
+#
+#
+#
+# print index
 
