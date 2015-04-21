@@ -1,14 +1,25 @@
 import os
 import codecs
+import cPickle as pickle
 
 from preprocessor import preprocess
 from math import log10
 
 
+def get_index(corpus_dir): # this function loads the index or creates it if nonexistant
+    if not (os.path.isfile('index.dat')):
+        index = indexer(corpus_dir)
+        with open('index.dat', 'w') as f:
+            pickle.dump(index, f, protocol=0)
+    else:
+        index = pickle.load(open('index.dat', 'r'))
+    return index
+
+
 def indexer(corpus_dir):
     index = {}
     doclist = os.listdir(corpus_dir)
-    M = len(doclist)
+    m = len(doclist)
     # extract tokens from files
     for filename in doclist:
 
@@ -29,17 +40,9 @@ def indexer(corpus_dir):
     enhanced_index = {}
     for word in index:
         enhanced_index[word]={} #inner dict
-        idf = log10((M+1) / len(index[word])) 
+        idf = log10((m+1) / len(index[word]))
         for document in index[word]:
             enhanced_index[word][document] = index[word][document]*idf
 
     return enhanced_index
-
-
-# corpus_dir = 'C:\\Users\\Santi\\git\\IWEB_SearchEngine\\corpus\\'
-# index = indexer(corpus_dir)
-#
-#
-#
-# print index
 
