@@ -40,7 +40,7 @@ def indexer(corpus_dir):
     enhanced_index = {}
     for word in index:
         enhanced_index[word] = {}  # inner dict
-        idf = log10((m+1) / len(index[word]))
+        idf = log10((m+1.0) / len(index[word]))
         for document in index[word]:
             enhanced_index[word][document] = index[word][document]*idf
 

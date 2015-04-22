@@ -2,7 +2,7 @@ import nltk
 import operator
 
 
-def search(query, index, doclist, k=1.2, b=2.0):
+def search(query, index, doclist, k=2.0, b=0.75):
     words = query.split()
     stemmer = nltk.stem.porter.PorterStemmer()
     query_freqs = {stemmer.stem(q): words.count(q) for q in words}
