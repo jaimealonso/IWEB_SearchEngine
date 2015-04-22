@@ -3,6 +3,8 @@ import operator
 
 
 def search(query, index, doclist):
+    index_aux = index[0]
+
     words = query.split()
     stemmer = nltk.stem.porter.PorterStemmer()
     query_freqs = {stemmer.stem(q): words.count(q) for q in words}
@@ -11,9 +13,9 @@ def search(query, index, doclist):
     for doc in doclist:
         value = 0
         for term in query_freqs:
-            if term in index:
-                if doc in index[term]:
-                    value += query_freqs[term]*index[term][doc]
+            if term in index_aux:
+                if doc in index_aux[term]:
+                    value += query_freqs[term]*index_aux[term][doc][0]*index_aux[term][doc][1]
         if value > 0:
             relevance_list[doc] = value
 

@@ -1,4 +1,5 @@
 import nltk
+import os
 
 
 def preprocess(document):
@@ -9,7 +10,7 @@ def preprocess(document):
     # remove punctuation marks and stopwords
     punctuation_marks = ['.', '?', '!', ':', ';', '-', '(', ')', '[', ']', '"', '/', ',']
 
-    stopword_file = open('../stopword_list.txt', 'r')
+    stopword_file = open(os.path.join(os.path.dirname(__file__), 'stopword_list.txt'), 'r')
     stopword_list = []
 
     for line in stopword_file:
