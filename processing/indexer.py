@@ -1,5 +1,8 @@
 from preprocessor import preprocess
 from math import log10
+from collections import defaultdict
+from numpy import exp
+import numpy
 import cPickle as pickle
 import os
 
@@ -23,27 +26,49 @@ def improved_indexer(documents):
     doc_lengths = {}
 
     for recordnum in documents:
-        document = documents[recordnum]
+        document = documents[recordnum]['text']
+        doc_lengths[recordnum] = []
 
-        tokens = preprocess(document)
-        for token in tokens:
-            if token in index:
-                if recordnum in index[token]:
-                    index[token][recordnum] += 1
+        for (i, field) in enumerate(document):
+            # priority = (i + 1)*10
+            # priority = exp(i + 2)
+            priority = i
+            tokens = preprocess(field)
+            for token in tokens:
+                if (token, priority) in index:
+                    if recordnum in index[(token, priority)]:
+                        index[(token, priority)][recordnum] += 1
+                    else:
+                        index[(token, priority)][recordnum] = 1
                 else:
-                    index[token][recordnum] = 1
-            else:
-                index[token] = {recordnum: 1}
+                    index[(token, priority)] = {recordnum: 1}
 
-        doc_lengths[recordnum] = len(tokens)
+            doc_lengths[recordnum].append(len(tokens))
 
-    doc_lengths['avg'] = sum(doc_lengths.itervalues())/m
+    all_doc_lengths = [doc_lengths[recordnum] for recordnum in doc_lengths]
+    doc_lengths_avg = numpy.average(numpy.matrix(all_doc_lengths), axis=0).tolist()[0]
+
+
+    doc_lengths['avg'] = doc_lengths_avg
 
     enhanced_index = {}
-    for word in index:
-        enhanced_index[word] = {}  # inner dict
-        idf = log10((m+1.0) / len(index[word]))
-        for document in index[word]:
-            enhanced_index[word][document] = [index[word][document], idf]
+    d = defaultdict(list)
+
+    for word, priority in index:
+        d[word].append(priority)
+    terms = dict((k, v) for (k, v) in d.items())
+
+    for word in terms:
+
+        docs_with_word_aux = [index[k, v] for k in terms for v in terms[k] if k == word]
+        docs_with_word = list(set([item for element in docs_with_word_aux for item in element]))
+        idf = log10((m+1.0) / len(docs_with_word))
+
+        for priority in terms[word]:
+            enhanced_index[(word, priority)] = {}
+
+            for document in index[(word, priority)]:
+                enhanced_index[(word, priority)][document] = [index[(word, priority)][document], idf]
+
 
     return [enhanced_index, doc_lengths]

@@ -1,27 +1,61 @@
 import nltk
 import operator
+from collections import defaultdict
+from numpy import exp
+import numpy
 
 
-def search(query, index, doclist, k=1.2, b=0.75):
+def index_conversion(index, doclens, bmin=0.1, bmax=0.8, b=0.15):
+    d = defaultdict(list)
+
+    for word, priority in index:
+        d[word].append(priority)
+    terms = dict((k, v) for (k, v) in d.items())
+
+    num_fields = max([priority for p in terms for priority in terms[p]]) + 1
+    if num_fields == 1:
+        bc = [bmax]
+    else:
+        bc = numpy.linspace(bmin, bmax, num=num_fields).tolist()
+
+    simple_index = {}
+    for word in terms:
+        simple_index[word] = {}
+        for priority in terms[word]:
+            boost = exp(priority + 2)
+            inner_bc = bc[priority]
+            for document in index[(word, priority)]:
+                field_len = doclens[document][priority]
+                avg_field_len = doclens['avg'][priority]
+                if document in simple_index[word]:
+                    simple_index[word][document][0] += (boost*index[(word, priority)][document][0])/((1-inner_bc)+inner_bc*(field_len/avg_field_len))
+                else:
+                    simple_index[word][document] = [(boost*index[(word, priority)][document][0])/((1-inner_bc)+inner_bc*(field_len/avg_field_len)),
+                                                    index[(word, priority)][document][1]]
+
+    return simple_index
+
+
+def search(query, index, doclist, k=15.0, b=0.75):
     words = query.split()
     stemmer = nltk.stem.porter.PorterStemmer()
     query_freqs = {stemmer.stem(q): words.count(q) for q in words}
     relevance_list = {}
-
-    avg_len = index[1]['avg']
+    index_aux = index_conversion(index[0], index[1])
 
     for doc in doclist:
         value = 0
-        doc_len = index[1][doc]
         for term in query_freqs:
-            if term in index[0]:
-                if doc in index[0][term]:
-                    num = query_freqs[term]*index[0][term][doc][0]*index[0][term][doc][1]*(k+1)
-                    den = index[0][term][doc][0]+k*(1-b+b*(doc_len/avg_len))
+
+            if term in index_aux:
+                if doc in index_aux[term]:
+                    num = index_aux[term][doc][0]*index_aux[term][doc][1]
+                    den = k + index_aux[term][doc][0]
+
                     value += num / den
         if value > 0:
             relevance_list[doc] = value
 
     sorted_list = sorted(relevance_list.items(), key=operator.itemgetter(1), reverse=True)
 
-    return sorted_list
+    return sorted_list[:100]

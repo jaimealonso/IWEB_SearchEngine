@@ -20,7 +20,7 @@ if __name__ == "__main__":
                         help='parses corpus using the Cystic Fibrosis Database model')
     parser.add_argument('--plain', dest='corpus_type', action='store_const', const='plain', default='cf',
                         help='parses corpus as plain text')
-    parser.add_argument('--buid-index', dest='build_index', action='store_const', const=True, default=False,
+    parser.add_argument('--build-index', dest='build_index', action='store_const', const=True, default=False,
                         help='forces program to rebuild the index')
 
     args = parser.parse_args()
