@@ -22,6 +22,11 @@ def generate_config(config, file_path):
     cfgfile.close()
 
 
+def checks(settings):
+    return os.path.exists(settings['index_path']) and os.path.exists(settings['corpus_dir']) and \
+           os.path.exists(settings['queries_path']) and os.path.exists(settings['results_dir'])
+
+
 def parse_config(config, file_path):
     settings_dict = {}
     config.read(file_path)
@@ -62,10 +67,8 @@ if __name__ == "__main__":
     else:
         parse_function = parsers.cf_xml_parser
 
-    if not os.path.isdir(os.path.abspath('resources/')):
-        os.mkdir(os.path.abspath('resources/'))
-    if not os.path.isdir(os.path.abspath('resources/results/')):
-        os.mkdir(os.path.abspath('resources/results/'))
+    if not checks(settings):
+        raise Exception('Please check every path in settings.conf exists.')
 
     index_path = os.path.abspath(settings['index_path'])
     corpus_dir = os.path.abspath(settings['corpus_dir'])
@@ -83,4 +86,7 @@ if __name__ == "__main__":
         index = indexer.get_index(corpus_dir, parse_function, index_path)
         doclist = index[1].keys()
 
-        print search_function(query, index, doclist)
+        results = search_function(query, index, doclist)
+
+        for doc, rel in results:
+            print 'Document: ' + doc + ' Relevance: ' + str(rel)
