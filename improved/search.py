@@ -1,11 +1,11 @@
-import nltk
 import operator
 from collections import defaultdict
 from numpy import exp
 import numpy
+from processing.preprocessor import preprocess
 
 
-def index_conversion(index, doclens, bmin=0.1, bmax=0.8, b=0.15):
+def index_conversion(index, doclens, bmin=0.1, bmax=0.8):
     d = defaultdict(list)
 
     for word, priority in index:
@@ -36,10 +36,10 @@ def index_conversion(index, doclens, bmin=0.1, bmax=0.8, b=0.15):
     return simple_index
 
 
-def search(query, index, doclist, k=15.0, b=0.75):
-    words = query.split()
-    stemmer = nltk.stem.porter.PorterStemmer()
-    query_freqs = {stemmer.stem(q): words.count(q) for q in words}
+def search(query, index, doclist, k=18.0, b=0.75):
+    words = preprocess(query, None)
+
+    query_freqs = {q: words.count(q) for q in words}
     relevance_list = {}
     index_aux = index_conversion(index[0], index[1])
 

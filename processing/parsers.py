@@ -1,6 +1,7 @@
 import xml.etree.ElementTree as ET
 import codecs
 import os
+from itertools import izip
 
 
 def cf_xml_parser(corpus_dir, doclist):
@@ -42,31 +43,48 @@ def cf_xml_parser(corpus_dir, doclist):
             else:
                 document.append('')
             if extract is not None:
-                # document += ' ' + extract.text
                 document.append(extract.text)
                 document_len += len(extract.text.split())
             else:
                 document.append('')
             if title is not None:
-                #document += (title+' ')*10
                 document.append(title)
                 document_len += len(title.split())
             else:
                 document.append('')
             if minorsubj_text is not None:
-                # document += minorsubj_text*50
                 document.append(minorsubj_text)
                 document_len += len(minorsubj_text.split())
             else:
                 document.append('')
             if majorsubj_text is not None:
-                #document += majorsubj_text*80
                 document.append(majorsubj_text)
                 document_len += len(majorsubj_text.split())
             else:
                 document.append('')
 
             documents[recordnum] = {'text': document, 'len': document_len}
+
+    return documents
+
+
+def moocs_parser(corpus_dir, dummydoclist):
+    text_file = os.path.join(corpus_dir, 'moocs.dat')
+    title_file = os.path.join(corpus_dir, 'moocs.dat.names')
+
+    text_f = codecs.open(text_file, 'r', encoding='utf-8')
+    title_f = codecs.open(title_file, 'r', encoding='utf-8')
+
+    documents = {}
+    docnum = 0
+
+    for text, title in izip(text_f, title_f):
+        document = [text, title]
+        documents[str(docnum)] = {'text': document}
+        docnum += 1
+
+    text_f.close()
+    title_f.close()
 
     return documents
 

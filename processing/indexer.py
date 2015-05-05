@@ -1,14 +1,12 @@
 from preprocessor import preprocess
 from math import log10
 from collections import defaultdict
-from numpy import exp
 import numpy
 import cPickle as pickle
 import os
 
 
 def get_index(corpus_dir, parser_function, index_path):  # this function loads the index or creates it if nonexistant
-    # resources_dir = os.path.dirname(os.path.dirname(__file__)) + "/resources/"
     if not (os.path.isfile(index_path)):
         doclist = [docname for docname in os.listdir(corpus_dir) if docname != '.DS_Store']
         documents = parser_function(corpus_dir, doclist)
@@ -25,15 +23,20 @@ def improved_indexer(documents):
     m = len(documents)
     doc_lengths = {}
 
+    stopword_file = open(os.path.join(os.path.dirname(__file__), 'stopword_list.txt'), 'r')
+    stopword_list = []
+
+    for line in stopword_file:
+        stopword_list.append(line.rstrip())
+
+    termlist = {}
     for recordnum in documents:
         document = documents[recordnum]['text']
         doc_lengths[recordnum] = []
 
         for (i, field) in enumerate(document):
-            # priority = (i + 1)*10
-            # priority = exp(i + 2)
             priority = i
-            tokens = preprocess(field)
+            tokens = preprocess(field, stopword_list)
             for token in tokens:
                 if (token, priority) in index:
                     if recordnum in index[(token, priority)]:
@@ -43,11 +46,16 @@ def improved_indexer(documents):
                 else:
                     index[(token, priority)] = {recordnum: 1}
 
+                if token in termlist:
+                    if recordnum not in termlist[token]:
+                        termlist[token].append(recordnum)
+                else:
+                    termlist[token] = [recordnum]
+
             doc_lengths[recordnum].append(len(tokens))
 
     all_doc_lengths = [doc_lengths[recordnum] for recordnum in doc_lengths]
     doc_lengths_avg = numpy.average(numpy.matrix(all_doc_lengths), axis=0).tolist()[0]
-
 
     doc_lengths['avg'] = doc_lengths_avg
 
@@ -60,8 +68,7 @@ def improved_indexer(documents):
 
     for word in terms:
 
-        docs_with_word_aux = [index[k, v] for k in terms for v in terms[k] if k == word]
-        docs_with_word = list(set([item for element in docs_with_word_aux for item in element]))
+        docs_with_word = termlist[word]
         idf = log10((m+1.0) / len(docs_with_word))
 
         for priority in terms[word]:
@@ -69,6 +76,5 @@ def improved_indexer(documents):
 
             for document in index[(word, priority)]:
                 enhanced_index[(word, priority)][document] = [index[(word, priority)][document], idf]
-
 
     return [enhanced_index, doc_lengths]

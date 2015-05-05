@@ -1,6 +1,6 @@
-import nltk
 import operator
 from collections import defaultdict
+from processing.preprocessor import preprocess
 
 
 def index_conversion(index):
@@ -28,9 +28,9 @@ def search(query, index, doclist):
     index_aux = index[0]
     simple_index = index_conversion(index_aux)
 
-    words = query.split()
-    stemmer = nltk.stem.porter.PorterStemmer()
-    query_freqs = {stemmer.stem(q): words.count(q) for q in words}
+    words = preprocess(query, None)
+
+    query_freqs = {q: words.count(q) for q in words}
     relevance_list = {}
 
     for doc in doclist:
